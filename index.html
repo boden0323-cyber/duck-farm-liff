@@ -1195,7 +1195,7 @@ createApp({
       // ---------- LINE LIFF 初始化＋強制登入（防刷單第一道防線：綁定 LINE 帳號） ----------
       try {
         if (typeof liff !== 'undefined') {
-          const LIFF_ID = 'YOUR_LIFF_ID'; // TODO: 請替換為您在 LINE Developers 申請的 LIFF ID
+          const LIFF_ID = '2011755408-iTLtPRy7';
           liff.init({ liffId: LIFF_ID }).then(() => {
             liffReady.value = true; // 只有真的部署好、LIFF ID 有效時才會進到這裡
             if (!liff.isLoggedIn()) {
