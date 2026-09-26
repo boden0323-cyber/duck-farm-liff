@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>鴨爸爸的雲端生態農場與美食工坊</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Vue 3 (含 template compiler，CDN 展示用) -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<!-- LINE LIFF SDK -->
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<!-- 中文字型 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+  * { font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif; }
+  body { -webkit-tap-highlight-color: transparent; }
+  ::-webkit-scrollbar { display: none; }
+
+  @keyframes duckBounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(-4deg); }
+  }
+  .duck-anim { animation: duckBounce 1.6s ease-in-out infinite; display: inline-block; }
+  .duck-anim:nth-child(2) { animation-delay: .3s; }
+  .duck-anim:nth-child(3) { animation-delay: .6s; }
+
+  @keyframes duckFeedPulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.25) rotate(8deg); }
+    100% { transform: scale(1); }
+  }
+  .duck-feeding .duck-anim { animation: duckFeedPulse .5s ease-out; }
+
+  @keyframes waveMove {
+    0% { background-position-x: 0; }
+    100% { background-position-x: 200px; }
+  }
+  .pool-wave {
+    background-image: repeating-linear-gradient(100deg, rgba(255,255,255,.35) 0 10px, transparent 10px 40px);
+    animation: waveMove 3s linear infinite;
+  }
+
+  @keyframes bobberIdle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(8px) rotate(-4deg); }
+  }
+  .bobber-idle { animation: bobberIdle 1.8s ease-in-out infinite; display: inline-block; }
+
+  @keyframes bobberBite {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(14px) rotate(-10deg); }
+    75% { transform: translateY(-6px) rotate(10deg); }
+  }
+  .bobber-bite { animation: bobberBite .25s ease-in-out infinite; display: inline-block; }
+
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -70px) scale(1.2); }
+  }
+  .float-pop { animation: floatUp 1s ease-out forwards; font-weight: 900; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,.15); }
+
+  @keyframes fadeSlide {
+    0% { opacity: 0; transform: translateY(-8px); }
+    10%, 90% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-8px); }
+  }
+  .animate-fade { animation: fadeSlide 2s ease-in-out forwards; }
+
+  @keyframes steamRise {
+    0% { opacity: .8; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-30px) scale(1.6); }
+  }
+  .steam-anim { animation: steamRise 1.1s ease-out forwards; }
+
+  @keyframes popIn {
+    0% { opacity: 0; transform: scale(.85) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal-pop { animation: popIn .25s ease-out; }
+
+  .resource-pill {
+    background: linear-gradient(135deg, #ecfdf5, #f0fdfa);
+    border: 1px solid #d1fae5;
+    border-radius: 999px;
+    padding: 3px 6px;
+    text-align: center;
+    font-weight: 700;
+    color: #047857;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white; font-weight: 700;
+    transition: transform .1s ease, filter .15s ease;
+  }
+  .btn-primary:active { transform: scale(.96); }
+  .btn-primary:disabled { filter: grayscale(.6) brightness(.9); opacity: .55; }
+
+  .card { background: white; border-radius: 1rem; box-shadow: 0 2px 10px rgba(16,185,129,.08); }
+.gicon { display: inline-block; vertical-align: -0.15em; flex-shrink: 0; }
+</style>
+</head>
+<body class="bg-emerald-50">
+
+<!-- 原創插畫圖示庫（隱藏的 SVG sprite，供 <use> 引用） -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+<defs>
+
+<symbol id="icon-duck" viewBox="0 0 100 100">
+  <ellipse cx="52" cy="66" rx="34" ry="24" fill="#fef3c7"/>
+  <ellipse cx="40" cy="60" rx="14" ry="10" fill="#fde68a"/>
+  <circle cx="66" cy="42" r="22" fill="#fffbeb"/>
+  <path d="M84 42 Q98 40 98 48 Q98 54 84 50 Z" fill="#f59e0b"/>
+  <circle cx="74" cy="36" r="3.2" fill="#292524"/>
+</symbol>
+
+<symbol id="icon-egg" viewBox="0 0 100 100">
+  <ellipse cx="50" cy="55" rx="28" ry="36" fill="#fffbeb" stroke="#fde68a" stroke-width="3"/>
+  <circle cx="40" cy="42" r="3" fill="#fde68a"/>
+  <circle cx="58" cy="60" r="2.4" fill="#fde68a"/>
+  <ellipse cx="40" cy="35" rx="8" ry="12" fill="#ffffff" opacity=".6"/>
+</symbol>
+
+<symbol id="icon-shrimp" viewBox="0 0 100 100">
+  <path d="M20 70 Q20 30 55 25 Q85 22 82 45 Q80 60 60 62 Q40 64 35 78 Z" fill="#fb923c"/>
+  <path d="M55 25 Q85 22 82 45 Q80 60 60 62" fill="none" stroke="#ea580c" stroke-width="4"/>
+  <path d="M20 70 L8 78 M22 62 L10 66 M26 54 L15 55" stroke="#ea580c" stroke-width="4" stroke-linecap="round"/>
+  <path d="M35 78 Q30 90 45 88 Q40 80 35 78Z" fill="#ea580c"/>
+  <circle cx="58" cy="30" r="3" fill="#7c2d12"/>
+</symbol>
+
+<symbol id="icon-bass" viewBox="0 0 100 100">
+  <ellipse cx="45" cy="52" rx="32" ry="20" fill="#38bdf8"/>
+  <path d="M77 52 L98 36 L98 68 Z" fill="#0369a1"/>
+  <path d="M40 34 L55 20 L60 38 Z" fill="#0284c7"/>
+  <ellipse cx="40" cy="60" rx="18" ry="8" fill="#e0f2fe" opacity=".7"/>
+  <circle cx="24" cy="46" r="4" fill="#0c4a6e"/>
+</symbol>
+
+<symbol id="icon-goldbream" viewBox="0 0 100 100">
+  <ellipse cx="45" cy="52" rx="32" ry="20" fill="#fbbf24"/>
+  <path d="M77 52 L98 32 L92 52 L98 72 Z" fill="#a855f7"/>
+  <path d="M40 34 L55 16 L58 38 Z" fill="#c084fc"/>
+  <circle cx="24" cy="46" r="4" fill="#78350f"/>
+  <path d="M16 20 L19 27 L26 28 L19 31 L16 38 L13 31 L6 28 L13 27 Z" fill="#fef08a"/>
+  <path d="M78 14 L80 19 L85 20 L80 22 L78 27 L76 22 L71 20 L76 19 Z" fill="#fef08a"/>
+</symbol>
+
+<symbol id="icon-chest" viewBox="0 0 100 100">
+  <rect x="14" y="50" width="72" height="36" rx="6" fill="#92400e"/>
+  <path d="M14 50 Q50 30 86 50 L86 60 Q50 42 14 60 Z" fill="#b45309"/>
+  <rect x="42" y="58" width="16" height="14" rx="2" fill="#fbbf24"/>
+  <circle cx="50" cy="65" r="2.6" fill="#451a03"/>
+</symbol>
+
+<symbol id="icon-treasurebox" viewBox="0 0 100 100">
+  <path d="M50 42 Q34 20 26 30 Q22 38 38 42 Z" fill="#fecdd3"/>
+  <path d="M50 42 Q66 20 74 30 Q78 38 62 42 Z" fill="#fecdd3"/>
+  <rect x="18" y="42" width="64" height="44" rx="6" fill="#f43f5e"/>
+  <rect x="18" y="49" width="64" height="10" fill="#ffffff"/>
+  <rect x="44" y="42" width="12" height="44" fill="#ffffff"/>
+</symbol>
+
+<symbol id="icon-greenwater" viewBox="0 0 100 100">
+  <path d="M50 12 Q78 52 78 68 Q78 90 50 90 Q22 90 22 68 Q22 52 50 12Z" fill="#38bdf8"/>
+  <ellipse cx="40" cy="66" rx="8" ry="12" fill="#bae6fd" opacity=".8"/>
+</symbol>
+
+<symbol id="icon-grass" viewBox="0 0 100 100">
+  <path d="M30 88 Q22 50 40 14 Q46 50 36 88Z" fill="#22c55e"/>
+  <path d="M50 88 Q46 40 50 10 Q60 45 58 88Z" fill="#16a34a"/>
+  <path d="M70 88 Q64 52 82 20 Q80 55 78 88Z" fill="#22c55e"/>
+</symbol>
+
+<symbol id="icon-daphnia" viewBox="0 0 100 100">
+  <ellipse cx="52" cy="55" rx="22" ry="26" fill="#fbcfe8"/>
+  <path d="M40 32 L26 18 M46 30 L38 12" stroke="#db2777" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <circle cx="46" cy="44" r="3.2" fill="#831843"/>
+  <path d="M60 78 Q74 84 70 68" stroke="#db2777" stroke-width="3" fill="none" stroke-linecap="round"/>
+</symbol>
+
+<symbol id="icon-duckfood" viewBox="0 0 100 100">
+  <path d="M30 20 Q10 40 20 65 Q10 75 22 85 Q40 95 65 80 Q90 70 78 40 Q90 20 65 15 Q45 8 30 20Z" fill="#facc15"/>
+  <path d="M32 30 L70 25 M28 45 L74 40 M28 60 L72 58 M32 74 L68 72" stroke="#ca8a04" stroke-width="4" stroke-linecap="round"/>
+  <path d="M28 22 Q10 10 6 28 Q20 30 28 22Z" fill="#16a34a"/>
+</symbol>
+
+<symbol id="icon-aqua" viewBox="0 0 100 100">
+  <path d="M14 55 Q40 25 62 55 Q40 85 14 55Z" fill="#0ea5e9"/>
+  <path d="M62 55 L86 40 L86 70 Z" fill="#0369a1"/>
+  <circle cx="26" cy="50" r="3.4" fill="#082f49"/>
+</symbol>
+
+<symbol id="icon-zhuwenjin" viewBox="0 0 100 100">
+  <ellipse cx="46" cy="52" rx="26" ry="22" fill="#f87171"/>
+  <path d="M70 40 Q98 20 96 52 Q98 84 70 64Z" fill="#dc2626"/>
+  <path d="M40 32 L52 14 L54 36Z" fill="#fecaca"/>
+  <circle cx="26" cy="46" r="3.6" fill="#7f1d1d"/>
+</symbol>
+
+<symbol id="icon-douyu" viewBox="0 0 100 100">
+  <path d="M62 46 Q96 10 90 52 Q96 94 62 58Z" fill="#6366f1" opacity=".85"/>
+  <path d="M20 58 Q6 70 14 82 Q26 78 26 62Z" fill="#a5b4fc"/>
+  <ellipse cx="42" cy="52" rx="22" ry="18" fill="#818cf8"/>
+  <path d="M36 34 L46 12 L50 36Z" fill="#a5b4fc"/>
+  <circle cx="24" cy="48" r="3.2" fill="#312e81"/>
+</symbol>
+
+<symbol id="icon-shan" viewBox="0 0 100 100">
+  <path d="M10 70 Q30 40 50 60 Q70 80 90 45" fill="none" stroke="#ca8a04" stroke-width="14" stroke-linecap="round"/>
+  <path d="M10 70 Q30 40 50 60 Q70 80 90 45" fill="none" stroke="#fde68a" stroke-width="4" stroke-linecap="round" opacity=".6"/>
+  <circle cx="12" cy="68" r="4" fill="#451a03"/>
+</symbol>
+
+<symbol id="icon-turtle" viewBox="0 0 100 100">
+  <circle cx="18" cy="42" r="10" fill="#84cc16"/>
+  <ellipse cx="30" cy="80" rx="8" ry="6" fill="#84cc16"/>
+  <ellipse cx="72" cy="80" rx="8" ry="6" fill="#84cc16"/>
+  <ellipse cx="50" cy="55" rx="34" ry="26" fill="#65a30d"/>
+  <path d="M50 32 Q34 40 34 55 Q34 70 50 78 Q66 70 66 55 Q66 40 50 32Z" fill="none" stroke="#365314" stroke-width="3"/>
+  <path d="M50 32 L50 78 M34 55 L66 55" stroke="#365314" stroke-width="3"/>
+</symbol>
+
+<symbol id="icon-hotpot" viewBox="0 0 100 100">
+  <path d="M38 34 Q34 24 40 16 M52 34 Q48 22 56 14 M64 34 Q60 24 66 18" stroke="#fca5a5" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M18 52 Q50 68 82 52 L76 82 Q50 92 24 82Z" fill="#dc2626"/>
+  <ellipse cx="50" cy="52" rx="32" ry="12" fill="#ef4444"/>
+</symbol>
+
+<symbol id="icon-turtlesoup" viewBox="0 0 100 100">
+  <path d="M38 34 Q34 24 40 16 M52 34 Q48 22 56 14 M64 34 Q60 24 66 18" stroke="#bbf7d0" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M18 52 Q50 68 82 52 L76 82 Q50 92 24 82Z" fill="#16a34a"/>
+  <ellipse cx="50" cy="52" rx="32" ry="12" fill="#4ade80"/>
+  <ellipse cx="50" cy="50" rx="10" ry="7" fill="#166534"/>
+</symbol>
+
+<symbol id="icon-braised" viewBox="0 0 100 100">
+  <line x1="30" y1="90" x2="36" y2="20" stroke="#92400e" stroke-width="4" stroke-linecap="round"/>
+  <line x1="60" y1="90" x2="66" y2="20" stroke="#92400e" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="34" cy="42" r="12" fill="#7c2d12"/>
+  <circle cx="35" cy="66" r="10" fill="#78350f"/>
+  <circle cx="64" cy="46" r="11" fill="#7c2d12"/>
+  <circle cx="65" cy="70" r="9" fill="#78350f"/>
+</symbol>
+
+<symbol id="icon-fishhotpot" viewBox="0 0 100 100">
+  <path d="M18 55 Q50 70 82 55 L76 84 Q50 94 24 84Z" fill="#ea580c"/>
+  <ellipse cx="50" cy="55" rx="32" ry="12" fill="#fb923c"/>
+  <path d="M40 44 Q50 34 60 44 Q54 50 50 48 Q46 50 40 44Z" fill="#38bdf8"/>
+  <circle cx="44" cy="43" r="1.6" fill="#0c4a6e"/>
+</symbol>
+
+<symbol id="icon-seafoodpack" viewBox="0 0 100 100">
+  <path d="M18 55 Q50 70 82 55 L76 84 Q50 94 24 84Z" fill="#0d9488"/>
+  <ellipse cx="50" cy="55" rx="32" ry="12" fill="#2dd4bf"/>
+  <path d="M42 48 Q56 42 58 52 Q52 58 46 56 Q40 56 42 48Z" fill="#fb923c"/>
+</symbol>
+
+<symbol id="icon-eggbox" viewBox="0 0 100 100">
+  <rect x="12" y="36" width="76" height="48" rx="6" fill="#d97706"/>
+  <rect x="12" y="36" width="76" height="14" rx="4" fill="#f59e0b"/>
+  <ellipse cx="30" cy="66" rx="9" ry="12" fill="#fffbeb"/>
+  <ellipse cx="50" cy="66" rx="9" ry="12" fill="#fffbeb"/>
+  <ellipse cx="70" cy="66" rx="9" ry="12" fill="#fffbeb"/>
+</symbol>
+
+<symbol id="icon-healthpack" viewBox="0 0 100 100">
+  <path d="M40 46 Q36 24 48 14 Q46 30 44 46Z" fill="#16a34a"/>
+  <path d="M56 46 Q64 26 58 12 Q54 30 52 46Z" fill="#22c55e"/>
+  <path d="M22 46 L78 46 L70 88 L30 88Z" fill="#a16207"/>
+  <path d="M22 46 Q50 34 78 46" fill="none" stroke="#78350f" stroke-width="4"/>
+  <circle cx="50" cy="34" r="9" fill="#f59e0b"/>
+</symbol>
+
+<symbol id="icon-lifegoods" viewBox="0 0 100 100">
+  <rect x="40" y="20" width="20" height="20" rx="4" fill="#db2777"/>
+  <rect x="32" y="38" width="36" height="52" rx="10" fill="#f9a8d4"/>
+  <rect x="38" y="54" width="24" height="8" rx="3" fill="#fce7f3"/>
+</symbol>
+
+<symbol id="icon-bobber" viewBox="0 0 100 100">
+  <line x1="50" y1="6" x2="50" y2="30" stroke="#78350f" stroke-width="4"/>
+  <path d="M26 52 A24 24 0 0 1 74 52 Z" fill="#ef4444"/>
+  <path d="M26 52 A24 24 0 0 0 74 52 Z" fill="#ffffff"/>
+</symbol>
+
+</defs>
+</svg>
+
+<div id="app" class="min-h-screen bg-gradient-to-b from-sky-100 via-emerald-50 to-amber-50 pb-24 relative overflow-x-hidden">
+
+  <!-- 浮動文字特效層 -->
+  <div class="pointer-events-none fixed inset-0 z-[60]">
+    <span v-for="t in floatingTexts" :key="t.id"
+          class="float-pop absolute text-lg"
+          :style="{ left: t.x + 'px', top: t.y + 'px', color: t.color }">{{ t.text }}</span>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div class="fixed top-16 left-0 right-0 z-[70] flex flex-col items-center gap-2 px-4 pointer-events-none">
+    <div v-for="t in toasts" :key="t.id"
+         class="animate-fade bg-gray-900/85 text-white text-xs font-medium px-4 py-2 rounded-full shadow-lg">
+      {{ t.msg }}
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-emerald-100 shadow-sm">
+    <div class="max-w-md mx-auto px-3 pt-2 pb-2">
+      <div class="flex items-center justify-between mb-2">
+        <h1 class="text-sm font-black text-emerald-700 flex items-center gap-1">
+          <svg class="gicon w-5 h-5"><use href="#icon-duck"/></svg> 鴨爸爸的雲端生態農場
+          <span v-if="lineUser" class="text-[10px] font-normal text-gray-400">・Hi, {{ lineUser.displayName }}</span>
+        </h1>
+        <div class="flex items-center gap-2 shrink-0">
+          <button @click="showDebug=true" class="text-[10px] text-sky-500 underline">🛠 測試後台</button>
+          <button @click="confirmReset" class="text-[10px] text-gray-400 underline">重置存檔</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-4 gap-1 text-[11px]">
+        <div class="resource-pill"><svg class="gicon w-3.5 h-3.5"><use href="#icon-greenwater"/></svg> {{ resources.greenWater }}</div>
+        <div class="resource-pill"><svg class="gicon w-3.5 h-3.5"><use href="#icon-grass"/></svg> {{ resources.waterGrass }}</div>
+        <div class="resource-pill"><svg class="gicon w-3.5 h-3.5"><use href="#icon-daphnia"/></svg> {{ resources.daphnia }}</div>
+        <div class="resource-pill"><svg class="gicon w-3.5 h-3.5"><use href="#icon-duckfood"/></svg> {{ resources.duckFood }}</div>
+      </div>
+      <div class="grid grid-cols-2 gap-1 text-[11px] mt-1">
+        <div class="resource-pill" style="color:#b45309;background:linear-gradient(135deg,#fffbeb,#fefce8);border-color:#fde68a;"><svg class="gicon w-3.5 h-3.5"><use href="#icon-egg"/></svg> 雲端鴨蛋 {{ resources.duckEgg }}</div>
+        <div class="resource-pill" style="color:#0369a1;background:linear-gradient(135deg,#f0f9ff,#eff6ff);border-color:#bae6fd;"><svg class="gicon w-3.5 h-3.5"><use href="#icon-aqua"/></svg> 水產資源 {{ resources.aquaResource }}</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto px-3 pt-3">
+
+    <!-- ============ 頁面 A：生態農場 ============ -->
+    <section v-if="page==='farm'">
+      <div class="grid grid-cols-4 gap-1 mb-3">
+        <button @click="farmTab='duck'" :class="tabBtnClass('duck')">🏡 鴨舍</button>
+        <button @click="farmTab='aqua'" :class="tabBtnClass('aqua')">🐠 水族池</button>
+        <button @click="farmTab='fishing'" :class="tabBtnClass('fishing')">🎣 釣魚池</button>
+        <button @click="farmTab='tasks'" :class="tabBtnClass('tasks')">📅 任務</button>
+      </div>
+
+      <!-- 鴨舍 -->
+      <div v-if="farmTab==='duck'">
+        <div class="card p-4 mb-3 text-center relative overflow-hidden" :class="{ 'duck-feeding': duckFeedingFx }">
+          <div class="text-xs text-gray-400 mb-1">柯爾鴨禽舍・{{ duck.count }} 隻鴨鴨</div>
+          <div class="flex justify-center gap-2 my-3 select-none">
+            <svg class="gicon duck-anim w-16 h-16" v-for="n in duck.count" :key="n"><use href="#icon-duck"/></svg>
+          </div>
+          <div class="text-xs text-gray-500 mb-1">飽食度 {{ duck.satiety }} / {{ duck.satietyMax }}</div>
+          <div class="w-full h-3 bg-emerald-100 rounded-full overflow-hidden mb-3">
+            <div class="h-full bg-emerald-500 transition-all duration-300" :style="{ width: (duck.satiety/duck.satietyMax*100)+'%' }"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button class="btn-primary rounded-xl py-3 text-sm flex items-center justify-center gap-1" :disabled="resources.duckFood<=0" @click="feedDuck($event)"><svg class="gicon w-4 h-4"><use href="#icon-duckfood"/></svg> 餵食柯爾鴨</button>
+            <button class="btn-primary rounded-xl py-3 text-sm flex items-center justify-center gap-1" style="background:linear-gradient(135deg,#f59e0b,#d97706)" :disabled="duck.satiety < duck.satietyMax" @click="collectEgg($event)"><svg class="gicon w-4 h-4"><use href="#icon-egg"/></svg> 採集雲端鴨蛋</button>
+          </div>
+          <p class="text-[10px] text-gray-400 mt-2">餵食消耗 1 顆鴨飼料，飽食度滿了才能採集鴨蛋喔！</p>
+        </div>
+      </div>
+
+      <!-- 水族生態池 -->
+      <div v-if="farmTab==='aqua'">
+        <div class="card p-4 mb-3 relative overflow-hidden">
+          <div class="absolute inset-x-0 bottom-0 h-10 pool-wave opacity-60" style="background-color:#7dd3fc"></div>
+          <div class="relative">
+            <div class="text-xs text-gray-500 mb-2 flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-grass"/></svg> 綠水水草池（基礎資源）</div>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+              <button class="btn-primary rounded-xl py-2 text-xs flex items-center justify-center gap-1" style="background:linear-gradient(135deg,#22c55e,#16a34a)" @click="gatherGrass($event)" :disabled="grassCooldown"><svg class="gicon w-4 h-4"><use href="#icon-grass"/></svg> 採集水草</button>
+              <button class="btn-primary rounded-xl py-2 text-xs flex items-center justify-center gap-1 flex-wrap" style="background:linear-gradient(135deg,#06b6d4,#0891b2)"
+                      :disabled="resources.greenWater<5 || resources.waterGrass<3 || breeding"
+                      @click="breedDaphnia($event)">
+                <template v-if="breeding">培育中...</template>
+                <template v-else><svg class="gicon w-4 h-4"><use href="#icon-daphnia"/></svg> 培育水蚤 (消耗5<svg class="gicon w-3 h-3"><use href="#icon-greenwater"/></svg>3<svg class="gicon w-3 h-3"><use href="#icon-grass"/></svg>)</template>
+              </button>
+            </div>
+            <p class="text-[10px] text-gray-400">水草每日光照自然生長，水蚤是餵養魚類的關鍵飼料。</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mb-3">
+          <div class="card p-3" v-for="f in baseFishList" :key="f.key">
+            <div class="flex justify-center mb-1"><svg class="gicon w-12 h-12"><use :href="'#icon-'+f.icon"/></svg></div>
+            <div class="text-xs font-bold text-center text-gray-700">{{ f.name }}・Lv.{{ fish[f.key].level }}</div>
+            <div class="w-full h-2 bg-sky-100 rounded-full overflow-hidden my-1">
+              <div class="h-full bg-sky-500" :style="{ width: (fish[f.key].feedProgress/LEVEL_THRESHOLD*100)+'%' }"></div>
+            </div>
+            <button class="btn-primary w-full rounded-lg py-1.5 text-[11px] flex items-center justify-center gap-1" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)"
+                    :disabled="resources.daphnia<FISH_FEED_COST || fish[f.key].level>=MAX_LEVEL"
+                    @click="feedFish(f.key,$event)">
+              <template v-if="fish[f.key].level>=MAX_LEVEL">已滿級</template>
+              <template v-else><svg class="gicon w-3.5 h-3.5"><use href="#icon-daphnia"/></svg> 餵食(-3)</template>
+            </button>
+          </div>
+        </div>
+
+        <div class="card p-3 mb-3" v-if="!state.highTierUnlocked">
+          <div class="text-xs font-bold text-gray-600 mb-1">🔒 高級水產池（鱔魚 / 鱉）</div>
+          <div class="text-[11px] text-gray-400 mb-2 flex items-center gap-1 flex-wrap">解鎖條件：朱文錦與鬥魚皆達 Lv.3，並消耗 30 <svg class="gicon w-3.5 h-3.5"><use href="#icon-aqua"/></svg>水產資源</div>
+          <button class="btn-primary w-full rounded-lg py-2 text-xs" @click="unlockHighTier($event)">🔓 升級高級水產池</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2" v-else>
+          <div class="card p-3" v-for="f in highFishList" :key="f.key">
+            <div class="flex justify-center mb-1"><svg class="gicon w-12 h-12"><use :href="'#icon-'+f.icon"/></svg></div>
+            <div class="text-xs font-bold text-center text-gray-700">{{ f.name }}・Lv.{{ fish[f.key].level }}</div>
+            <div class="w-full h-2 bg-indigo-100 rounded-full overflow-hidden my-1">
+              <div class="h-full bg-indigo-500" :style="{ width: (fish[f.key].feedProgress/LEVEL_THRESHOLD*100)+'%' }"></div>
+            </div>
+            <button class="btn-primary w-full rounded-lg py-1.5 text-[11px] flex items-center justify-center gap-1" style="background:linear-gradient(135deg,#6366f1,#4f46e5)"
+                    :disabled="resources.daphnia<FISH_FEED_COST_HIGH || resources.aquaResource<3 || fish[f.key].level>=MAX_LEVEL"
+                    @click="feedFish(f.key,$event)">
+              <template v-if="fish[f.key].level>=MAX_LEVEL">已滿級</template>
+              <template v-else><svg class="gicon w-3.5 h-3.5"><use href="#icon-daphnia"/></svg> 餵食(-5<svg class="gicon w-3.5 h-3.5"><use href="#icon-daphnia"/></svg>-3<svg class="gicon w-3.5 h-3.5"><use href="#icon-aqua"/></svg>)</template>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 休閒釣魚池 -->
+      <div v-if="farmTab==='fishing'">
+        <div class="card p-4 mb-3 relative overflow-hidden" style="min-height:180px;">
+          <div class="absolute inset-x-0 bottom-0 h-16 pool-wave opacity-60" style="background-color:#38bdf8"></div>
+          <div class="relative flex flex-col items-center justify-center" style="min-height:150px;">
+            <div class="flex items-center gap-1 mb-2">
+              <span v-if="fishing.state==='biting'" class="text-2xl text-red-500 font-black">❗</span>
+              <svg class="gicon w-16 h-16" :class="fishing.state==='biting' ? 'bobber-bite' : 'bobber-idle'"><use href="#icon-bobber"/></svg>
+            </div>
+            <div class="text-xs font-bold" :class="fishing.state==='biting' ? 'text-red-500' : 'text-sky-700'">
+              {{ fishingStatusText }}
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-3 mb-3">
+          <div class="text-xs text-gray-500 mb-2">🪱 選擇魚餌</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button v-for="b in baitOptions" :key="b.id"
+                    class="rounded-xl py-2 text-[11px] border font-bold"
+                    :class="selectedBait===b.id ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-500 border-gray-200'"
+                    :disabled="fishing.state!=='idle'"
+                    @click="selectedBait=b.id">
+              <svg class="gicon w-7 h-7 mx-auto mb-1"><use :href="'#icon-'+b.icon"/></svg>
+              <div>{{ b.name }}</div>
+              <div class="font-normal opacity-80 flex items-center justify-center gap-1 flex-wrap mt-0.5">
+                （<span v-for="(val,key) in b.cost" :key="key" class="inline-flex items-center gap-0.5"><svg class="gicon w-3 h-3"><use :href="'#icon-'+iconId(key)"/></svg>{{ val }}</span>）
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mb-3">
+          <button class="btn-primary rounded-xl py-3 text-sm" :disabled="fishing.state!=='idle' || !canCast" @click="castRod($event)">🎣 拋竿</button>
+          <button class="btn-primary rounded-xl py-3 text-sm" style="background:linear-gradient(135deg,#f43f5e,#e11d48)" :disabled="fishing.state!=='biting'" @click="reelIn($event)">💪 拉竿！</button>
+        </div>
+
+        <div class="card p-3 text-xs text-gray-600 flex justify-around">
+          <span class="flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-shrimp"/></svg> 泰國蝦 {{ resources.shrimp }}</span>
+          <span class="flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-bass"/></svg> 野生鱸魚 {{ resources.bass }}</span>
+          <span class="flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-goldbream"/></svg> 夢幻金鯛 {{ resources.goldBream }}</span>
+        </div>
+        <p class="text-[10px] text-gray-400 mt-2 text-center">拋竿後浮標會開始晃動，等浮標「❗」用力下沉時盡快拉竿！釣到的魚可以拿去美食工坊加工，偶爾還會挖到黃金寶箱喔！</p>
+      </div>
+
+      <!-- 每日任務 -->
+      <div v-if="farmTab==='tasks'">
+        <div class="card p-4 mb-3 flex items-center justify-between">
+          <div>
+            <div class="text-sm font-bold text-gray-700">📝 每日簽到</div>
+            <div class="text-[11px] text-gray-400 flex items-center gap-1">領取 +10 <svg class="gicon w-3.5 h-3.5"><use href="#icon-duckfood"/></svg>鴨飼料</div>
+          </div>
+          <button class="btn-primary rounded-xl px-4 py-2 text-xs" :disabled="checkedInToday" @click="checkIn($event)">
+            {{ checkedInToday ? '✅ 已簽到' : '簽到領取' }}
+          </button>
+        </div>
+        <div class="card p-4 flex items-center justify-between">
+          <div>
+            <div class="text-sm font-bold text-gray-700">📺 觀看廣告</div>
+            <div class="text-[11px] text-gray-400 flex items-center gap-1 flex-wrap">獲得 +15 <svg class="gicon w-3.5 h-3.5"><use href="#icon-greenwater"/></svg>綠水營養液（今日剩餘 {{ adRemaining }} 次）</div>
+          </div>
+          <button class="btn-primary rounded-xl px-4 py-2 text-xs" style="background:linear-gradient(135deg,#f43f5e,#e11d48)"
+                  :disabled="adRemaining<=0 || adLoading" @click="watchAd($event)">
+            {{ adLoading ? '播放中...' : (adRemaining<=0 ? '今日已達上限' : '看廣告') }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 頁面 B：美食與商品加工廠 ============ -->
+    <section v-if="page==='factory'">
+      <div class="card p-3 mb-3 text-center text-xs text-gray-500 flex flex-wrap justify-center gap-x-3 gap-y-1">
+        <span class="flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-egg"/></svg> 鴨蛋 <b class="text-amber-600">{{ resources.duckEgg }}</b></span>
+        <span class="flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-aqua"/></svg> 水產資源 <b class="text-sky-600">{{ resources.aquaResource }}</b></span>
+        <span class="flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-shrimp"/></svg> 泰國蝦 <b class="text-orange-600">{{ resources.shrimp }}</b></span>
+        <span class="flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-bass"/></svg> 野生鱸魚 <b class="text-cyan-600">{{ resources.bass }}</b></span>
+        <span class="flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-goldbream"/></svg> 夢幻金鯛 <b class="text-violet-600">{{ resources.goldBream }}</b></span>
+      </div>
+
+      <div class="card p-4 mb-3" v-for="r in recipes" :key="r.id">
+        <div class="flex items-start gap-3">
+          <svg class="gicon w-14 h-14"><use :href="'#icon-'+r.icon"/></svg>
+          <div class="flex-1">
+            <div class="font-bold text-gray-800 text-sm">{{ r.name }}</div>
+            <div class="text-[11px] text-gray-400 mb-1">{{ r.desc }}</div>
+            <div class="flex gap-2 text-[11px] flex-wrap">
+              <span v-for="(val,key) in r.cost" :key="key" class="inline-flex items-center gap-0.5" :class="resources[key]>=val ? 'text-emerald-600' : 'text-red-400'"><svg class="gicon w-3.5 h-3.5"><use :href="'#icon-'+iconId(key)"/></svg> 需 {{ val }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-2 flex items-center justify-between">
+          <span v-if="r.lockKey && !state[r.lockKey]" class="text-[11px] text-gray-400">🔒 需先解鎖高級水產池</span>
+          <span v-else class="text-[11px] text-gray-400">已擁有兌換券 x{{ voucherMap[r.id].ownedQty }}</span>
+          <button class="btn-primary rounded-xl px-4 py-2 text-xs"
+                  :disabled="!canProcess(r)"
+                  @click="processRecipe(r,$event)">
+            🔥 熬製 / 加工
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 頁面 C：背包與 $0 兌換商店 ============ -->
+    <section v-if="page==='bag'">
+      <div v-if="vouchers.every(v=>v.ownedQty===0)" class="card p-6 text-center text-xs text-gray-400">
+        還沒有任何實體商品兌換券，先到「美食工坊」加工看看吧！
+      </div>
+      <div class="card p-4 mb-3 flex items-center gap-3" v-for="v in vouchers" :key="v.id" v-else>
+        <svg class="gicon w-14 h-14"><use :href="'#icon-'+v.icon"/></svg>
+        <div class="flex-1">
+          <div class="font-bold text-sm text-gray-800">{{ v.name }}</div>
+          <div v-if="v.id==='treasureBox'" class="text-[11px] text-amber-500">🎣 釣魚挖到黃金寶箱時會自動加入購物車</div>
+          <div v-else class="text-[11px] text-gray-400">$0 免費兌換券・持有 {{ v.ownedQty }}</div>
+        </div>
+        <button v-if="v.id!=='treasureBox'" class="btn-primary rounded-xl px-3 py-2 text-xs" :disabled="v.ownedQty<=0" @click="addVoucherToCart(v.id,$event)">
+          + 加入購物車
+        </button>
+      </div>
+
+      <button v-if="cartFreeCount>0" class="btn-primary w-full rounded-xl py-3 text-sm mt-2" style="background:linear-gradient(135deg,#f59e0b,#d97706)" @click="page='checkout'">
+        🛒 前往購物車結帳（{{ cartFreeCount }} 項免費商品）
+      </button>
+    </section>
+
+    <!-- ============ 頁面 D：結帳與湊單購物車 ============ -->
+    <section v-if="page==='checkout'">
+      <div v-if="liffReady" class="card p-3 mb-3 text-[11px] flex items-center gap-2" :class="state.lineUserId ? 'text-emerald-600' : 'text-red-500'">
+        <span v-if="state.lineUserId">✅ 已綁定 LINE 帳號：{{ lineUser && lineUser.displayName }}（每筆訂單都會記錄此帳號，供防刷單審核用）</span>
+        <span v-else>⚠️ 尚未登入 LINE，請先完成登入才能兌換 $0 商品</span>
+      </div>
+
+      <div class="card p-4 mb-3">
+        <div class="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-treasurebox"/></svg> 您獲得的 $0 免費商品</div>
+        <div v-if="cartFreeCount===0" class="text-[11px] text-gray-400">尚未選擇任何免費商品，請回背包頁加入。</div>
+        <div v-for="item in cartFreeList" :key="item.id" class="flex items-center justify-between py-1 text-xs">
+          <span class="flex items-center gap-1"><svg class="gicon w-5 h-5"><use :href="'#icon-'+item.icon"/></svg> {{ item.name }} x{{ item.qty }}</span>
+          <span class="flex items-center gap-2">
+            <span class="text-emerald-600 font-bold">$0</span>
+            <button class="text-gray-400 underline text-[11px]" @click="removeFromCart(item.id)">移除</button>
+          </span>
+        </div>
+      </div>
+
+      <div class="card p-4 mb-3">
+        <div class="text-sm font-bold text-gray-700 mb-2">➕ 湊單加購區（滿 $499 免運）</div>
+        <div v-for="p in addonProducts" :key="p.id" class="flex items-center justify-between py-2 border-b last:border-b-0 border-gray-100">
+          <div class="text-xs flex items-center gap-2">
+            <svg class="gicon w-8 h-8"><use :href="'#icon-'+p.icon"/></svg>
+            <div>
+              <div>{{ p.name }}</div>
+              <div class="text-gray-400">${{ p.price }}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="w-7 h-7 rounded-full bg-gray-100 text-gray-600 font-bold" @click="changeAddon(p.id,-1)">−</button>
+            <span class="w-5 text-center text-sm">{{ cart.addons[p.id] }}</span>
+            <button class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold" @click="changeAddon(p.id,1)">＋</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-4 mb-3">
+        <div class="text-sm font-bold text-gray-700 mb-2">🚚 配送方式</div>
+        <div class="flex gap-2 mb-2">
+          <button :class="shipBtnClass('store')" @click="cart.shipping='store'">超商取貨</button>
+          <button :class="shipBtnClass('home')" @click="cart.shipping='home'">宅配到府</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs mb-1">
+          <input v-model="cart.recipient.name" placeholder="收件人姓名" class="border border-gray-200 rounded-lg px-3 py-2 col-span-2" />
+          <input v-model="cart.recipient.phone" placeholder="聯絡電話" class="border border-gray-200 rounded-lg px-3 py-2 col-span-2" />
+          <template v-if="cart.shipping==='store'">
+            <select v-model="cart.recipient.storeBrand" class="border border-gray-200 rounded-lg px-2 py-2">
+              <option value="">選擇超商</option>
+              <option>7-ELEVEN</option>
+              <option>全家 FamilyMart</option>
+              <option>OK超商</option>
+              <option>萊爾富</option>
+            </select>
+            <input v-model="cart.recipient.storeName" placeholder="門市名稱" class="border border-gray-200 rounded-lg px-2 py-2" />
+          </template>
+          <input v-else v-model="cart.recipient.address" placeholder="宅配地址" class="border border-gray-200 rounded-lg px-3 py-2 col-span-2" />
+        </div>
+      </div>
+
+      <div class="card p-4 mb-3 text-xs space-y-1">
+        <div class="flex justify-between"><span>加購商品小計</span><span>${{ addonSubtotal }}</span></div>
+        <div class="flex justify-between">
+          <span>運費</span>
+          <span :class="shippingFee===0 ? 'text-emerald-600 font-bold' : ''">{{ shippingFee===0 ? '免運 🎉' : ('$'+shippingFee) }}</span>
+        </div>
+        <div v-if="shippingFee>0" class="text-[10px] text-gray-400">再加購 ${{ 499-addonSubtotal }} 即可享免運！</div>
+        <div class="flex justify-between text-sm font-black text-emerald-700 pt-1 border-t border-gray-100">
+          <span>應付總額</span><span>${{ totalAmount }}</span>
+        </div>
+      </div>
+
+      <button class="btn-primary w-full rounded-xl py-3 text-sm" @click="submitOrder">🧾 送出訂單</button>
+    </section>
+  </main>
+
+  <!-- 訂單成立 Modal -->
+  <div v-if="showOrderModal" class="fixed inset-0 z-[80] bg-black/50 flex items-center justify-center px-8" @click.self="showOrderModal=false">
+    <div class="card modal-pop p-6 w-full max-w-xs text-center">
+      <div class="text-5xl mb-2">🎉</div>
+      <div class="font-black text-emerald-700 mb-1">訂單成立！</div>
+      <div class="text-xs text-gray-500 mb-3">訂單編號 #{{ lastOrderId }}</div>
+      <div class="text-xs text-gray-600 mb-4">感謝支持鴨爸爸的雲端生態農場，商品將盡快由物流出貨給您！</div>
+      <button class="btn-primary w-full rounded-xl py-2 text-sm" @click="showOrderModal=false">確定</button>
+    </div>
+  </div>
+
+  <!-- 測試後台 Modal -->
+  <div v-if="showDebug" class="fixed inset-0 z-[90] bg-black/60 flex items-end justify-center">
+    <div class="card modal-pop w-full max-w-md rounded-b-none p-4" style="max-height:88vh; overflow-y:auto;">
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-black text-gray-700 text-sm">🛠 測試後台（僅內部測試用，正式上線前請移除或加上密碼保護）</div>
+        <button class="text-gray-400 text-xl leading-none" @click="showDebug=false">✕</button>
+      </div>
+
+      <div class="mb-4">
+        <div class="text-xs font-bold text-gray-500 mb-2">① 資源快速調整（可直接輸入數字）</div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <label v-for="key in debugResourceKeys" :key="key" class="flex items-center justify-between bg-gray-50 rounded-lg px-2 py-1.5">
+            <span>{{ resourceIcon(key) }} {{ key }}</span>
+            <input type="number" v-model.number="resources[key]" class="w-16 border border-gray-200 rounded px-1 text-right" />
+          </label>
+        </div>
+        <button class="btn-primary w-full rounded-lg py-2 text-xs mt-2" @click="debugAddAll(100)">全部資源 +100</button>
+      </div>
+
+      <div class="mb-4">
+        <div class="text-xs font-bold text-gray-500 mb-2">② 測試捷徑</div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button class="bg-gray-100 rounded-lg py-2" @click="duck.satiety=duck.satietyMax">🦆 灌滿飽食度</button>
+          <button class="bg-gray-100 rounded-lg py-2" @click="debugMaxFish">🐟 魚類全部滿級</button>
+          <button class="bg-gray-100 rounded-lg py-2" @click="state.highTierUnlocked=true">🔓 解鎖高級水產池</button>
+          <button class="bg-gray-100 rounded-lg py-2" @click="debugResetDaily">📅 重置每日任務</button>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="text-xs font-bold text-gray-500 mb-2">③ 強制下一次釣魚結果（仍需正常拋竿→拉竿操作）</div>
+        <div class="grid grid-cols-3 gap-2 text-xs">
+          <button v-for="opt in debugCatchOptions" :key="opt.id"
+                  class="rounded-lg py-2 border"
+                  :class="debugForcedCatch===opt.id ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white border-gray-200 text-gray-600'"
+                  @click="debugForcedCatch = (debugForcedCatch===opt.id ? '' : opt.id)">
+            {{ opt.emoji }} {{ opt.label }}
+          </button>
+        </div>
+        <p class="text-[10px] text-gray-400 mt-1">{{ debugForcedCatch ? ('下次拉竿必定產出：' + debugForcedCatch) : '目前未強制，維持正常機率' }}</p>
+      </div>
+
+      <div class="mb-4">
+        <div class="text-xs font-bold text-gray-500 mb-2">④ 直接發放兌換券（跳過加工，測結帳流程用）</div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button v-for="v in vouchers" :key="v.id" class="bg-gray-100 rounded-lg py-2" @click="voucherMap[v.id].ownedQty++">{{ v.emoji }} {{ v.name }} +1</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-xs font-bold text-gray-500 mb-2">⑤ 存檔資料匯出/匯入（玩家回報 BUG 時，請他點「匯出」把文字複製給你，貼到下方文字框後按「匯入」即可還原他當下的遊戲狀態）</div>
+        <div class="flex gap-2 mb-2">
+          <button class="btn-primary rounded-lg px-3 py-1.5 text-xs" @click="debugExportSave">📤 匯出目前存檔</button>
+          <button class="bg-gray-100 rounded-lg px-3 py-1.5 text-xs" @click="debugImportSave">📥 匯入下方 JSON</button>
+        </div>
+        <textarea v-model="debugExportText" rows="6" class="w-full border border-gray-200 rounded-lg p-2 text-[10px] font-mono" placeholder="按「匯出目前存檔」會把 JSON 印在這裡；要還原某個存檔時，把 JSON 貼在這裡後按「匯入下方 JSON」"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部導覽列 -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-emerald-100 shadow-[0_-2px_10px_rgba(0,0,0,.05)]">
+    <div class="max-w-md mx-auto grid grid-cols-4">
+      <button v-for="n in navItems" :key="n.id" @click="page=n.id"
+              class="flex flex-col items-center py-2 text-[11px] relative"
+              :class="page===n.id ? 'text-emerald-600 font-bold' : 'text-gray-400'">
+        <span class="text-xl relative">
+          {{ n.icon }}
+          <span v-if="n.id==='checkout' && cartBadge>0" class="absolute -top-1 -right-3 bg-red-500 text-white rounded-full text-[9px] leading-none px-1.5 py-0.5">{{ cartBadge }}</span>
+        </span>
+        {{ n.label }}
+      </button>
+    </div>
+  </nav>
+</div>
+
+<script>
+const { createApp, reactive, computed, ref, onMounted, watch } = Vue;
+
+createApp({
+  setup() {
+    const SAVE_KEY = 'duckFarmSaveV1';
+    const LEVEL_THRESHOLD = 3;
+    const MAX_LEVEL = 5;
+    const FISH_FEED_COST = 3;
+    const FISH_FEED_COST_HIGH = 5;
+
+    const page = ref('farm');
+    const farmTab = ref('duck');
+    const lineUser = ref(null);
+    const liffReady = ref(false); // true 代表已在真實 LIFF 環境成功初始化（非本機測試）
+
+    const defaultState = () => ({
+      resources: { greenWater: 20, waterGrass: 15, daphnia: 10, duckFood: 15, duckEgg: 0, aquaResource: 0, shrimp: 0, bass: 0, goldBream: 0 },
+      duck: { count: 3, satiety: 0, satietyMax: 100 },
+      fish: {
+        zhuwenjin: { level: 1, feedProgress: 0 },
+        douyu:     { level: 1, feedProgress: 0 },
+        shan:      { level: 1, feedProgress: 0 },
+        turtle:    { level: 1, feedProgress: 0 },
+      },
+      highTierUnlocked: false,
+      dailyTasks: { lastCheckIn: null, adDate: null, adCount: 0 },
+      vouchers: {
+        eggbox:      { ownedQty: 0 },
+        hotpot:      { ownedQty: 0 },
+        turtlesoup:  { ownedQty: 0 },
+        braised:     { ownedQty: 0 },
+        fishhotpot:  { ownedQty: 0 },
+        seafoodpack: { ownedQty: 0 },
+        treasureBox: { ownedQty: 0 },
+      },
+      cart: {
+        freeItems: {},
+        addons: { braisedSet: 0, healthPack: 0, lifeGoods: 0 },
+        shipping: 'store',
+        recipient: { name: '', phone: '', storeBrand: '', storeName: '', address: '' },
+      },
+      lineUserId: null,
+      orderHistory: [],
+    });
+
+    const loaded = (() => {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return defaultState();
+        const parsed = JSON.parse(raw);
+        const base = defaultState();
+        return {
+          resources: Object.assign(base.resources, parsed.resources),
+          duck: Object.assign(base.duck, parsed.duck),
+          fish: Object.assign(base.fish, parsed.fish),
+          highTierUnlocked: !!parsed.highTierUnlocked,
+          dailyTasks: Object.assign(base.dailyTasks, parsed.dailyTasks),
+          vouchers: Object.assign(base.vouchers, parsed.vouchers),
+          cart: Object.assign(base.cart, parsed.cart),
+          lineUserId: parsed.lineUserId || null,
+          orderHistory: Array.isArray(parsed.orderHistory) ? parsed.orderHistory : [],
+        };
+      } catch (e) {
+        console.warn('存檔讀取失敗，使用預設值', e);
+        return defaultState();
+      }
+    })();
+
+    const state = reactive(loaded);
+    const resources = state.resources;
+    const duck = state.duck;
+    const fish = state.fish;
+    const cart = state.cart;
+
+    watch(state, () => {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }, { deep: true });
+
+    // ---------- 靜態資料 ----------
+    const recipes = reactive([
+      { id: 'eggbox', name: '柯爾鴨鮮蛋盒（10顆入）', icon: 'eggbox', desc: '雲端直送新鮮柯爾鴨蛋禮盒', cost: { duckEgg: 6 } },
+      { id: 'hotpot', name: '秘製火鍋底料', icon: 'hotpot', desc: '鴨骨熬煮濃郁湯頭，暖心暖胃', cost: { duckEgg: 4, aquaResource: 10 } },
+      { id: 'turtlesoup', name: '養生鱉湯包', icon: 'turtlesoup', desc: '古法燉煮，滋補養生首選', cost: { duckEgg: 8, aquaResource: 20 }, lockKey: 'highTierUnlocked' },
+      { id: 'braised', name: '極上滷味包', icon: 'braised', desc: '秘傳滷汁手工滷味組合包', cost: { duckEgg: 10, aquaResource: 25 }, lockKey: 'highTierUnlocked' },
+      { id: 'fishhotpot', name: '鮮魚火鍋湯底', icon: 'fishhotpot', desc: '釣魚池鮮蝦鱸魚熬煮，鮮甜濃郁', cost: { shrimp: 3, bass: 2 } },
+      { id: 'seafoodpack', name: '養生海鮮湯包', icon: 'seafoodpack', desc: '匯集鱸魚與夢幻金鯛的頂級海味湯包', cost: { bass: 2, goldBream: 1 } },
+    ]);
+
+    const voucherMeta = {
+      eggbox:      { name: '柯爾鴨鮮蛋盒（10顆入）', icon: 'eggbox' },
+      hotpot:      { name: '秘製火鍋底料', icon: 'hotpot' },
+      turtlesoup:  { name: '養生鱉湯包', icon: 'turtlesoup' },
+      braised:     { name: '極上滷味包', icon: 'braised' },
+      fishhotpot:  { name: '鮮魚火鍋湯底', icon: 'fishhotpot' },
+      seafoodpack: { name: '養生海鮮湯包', icon: 'seafoodpack' },
+      treasureBox: { name: '海洋驚喜福袋（生活用品）', icon: 'treasurebox' },
+    };
+    const vouchers = computed(() =>
+      Object.keys(voucherMeta).map(id => ({ id, ...voucherMeta[id], ownedQty: state.vouchers[id].ownedQty }))
+    );
+    const voucherMap = state.vouchers;
+
+    const baseFishList = [
+      { key: 'zhuwenjin', name: '朱文錦', icon: 'zhuwenjin' },
+      { key: 'douyu', name: '鬥魚', icon: 'douyu' },
+    ];
+    const highFishList = [
+      { key: 'shan', name: '鱔魚', icon: 'shan' },
+      { key: 'turtle', name: '鱉', icon: 'turtle' },
+    ];
+
+    const addonProducts = [
+      { id: 'braisedSet', name: '爆款滷味組', price: 199, icon: 'braised' },
+      { id: 'healthPack', name: '養生食材包', price: 250, icon: 'healthpack' },
+      { id: 'lifeGoods', name: '質感生活用品', price: 120, icon: 'lifegoods' },
+    ];
+
+    const navItems = [
+      { id: 'farm', icon: '🏡', label: '農場' },
+      { id: 'factory', icon: '🍳', label: '加工廠' },
+      { id: 'bag', icon: '🎒', label: '背包' },
+      { id: 'checkout', icon: '🛒', label: '結帳' },
+    ];
+
+    // ---------- 特效 ----------
+    const floatingTexts = reactive([]);
+    let floatId = 0;
+    function spawnFloat(text, evt, color) {
+      const x = evt && evt.clientX ? evt.clientX : window.innerWidth / 2;
+      const y = evt && evt.clientY ? evt.clientY : window.innerHeight / 2;
+      const id = ++floatId;
+      floatingTexts.push({ id, text, x, y, color: color || '#059669' });
+      setTimeout(() => {
+        const idx = floatingTexts.findIndex(f => f.id === id);
+        if (idx !== -1) floatingTexts.splice(idx, 1);
+      }, 1000);
+    }
+
+    const toasts = reactive([]);
+    let toastId = 0;
+    function showToast(msg) {
+      const id = ++toastId;
+      toasts.push({ id, msg });
+      setTimeout(() => {
+        const idx = toasts.findIndex(t => t.id === id);
+        if (idx !== -1) toasts.splice(idx, 1);
+      }, 2000);
+    }
+
+    // ---------- 工具 ----------
+    function today() {
+      const d = new Date();
+      return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    }
+    function iconId(key) {
+      return { duckEgg: 'egg', aquaResource: 'aqua', shrimp: 'shrimp', bass: 'bass', goldBream: 'goldbream', daphnia: 'daphnia', greenWater: 'greenwater', waterGrass: 'grass', duckFood: 'duckfood' }[key] || 'aqua';
+    }
+    function tabBtnClass(id) {
+      return ['rounded-xl py-2 text-xs font-bold transition', farmTab.value === id ? 'bg-emerald-600 text-white shadow' : 'bg-white text-gray-400 border border-gray-100'];
+    }
+    function shipBtnClass(id) {
+      return ['flex-1 rounded-xl py-2 text-xs font-bold border', cart.shipping === id ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-400 border-gray-200'];
+    }
+
+    // ---------- 鴨舍 ----------
+    const duckFeedingFx = ref(false);
+    function feedDuck(evt) {
+      if (resources.duckFood <= 0) { showToast('鴨飼料不足，去每日任務簽到吧！'); return; }
+      resources.duckFood -= 1;
+      duck.satiety = Math.min(duck.satietyMax, duck.satiety + 25);
+      duckFeedingFx.value = true;
+      setTimeout(() => (duckFeedingFx.value = false), 500);
+      spawnFloat('+25 飽食度', evt);
+    }
+    function collectEgg(evt) {
+      if (duck.satiety < duck.satietyMax) return;
+      const gain = Math.floor(Math.random() * 3) + duck.count;
+      resources.duckEgg += gain;
+      duck.satiety = 0;
+      spawnFloat('+' + gain + ' 🥚', evt, '#d97706');
+      showToast('採集到 ' + gain + ' 顆雲端鴨蛋！');
+    }
+
+    // ---------- 水族生態池 ----------
+    const grassCooldown = ref(false);
+    function gatherGrass(evt) {
+      if (grassCooldown.value) return;
+      const gain = Math.floor(Math.random() * 3) + 1;
+      resources.waterGrass += gain;
+      spawnFloat('+' + gain + ' 🌾', evt);
+      grassCooldown.value = true;
+      setTimeout(() => (grassCooldown.value = false), 1000);
+    }
+
+    const breeding = ref(false);
+    function breedDaphnia(evt) {
+      if (resources.greenWater < 5 || resources.waterGrass < 3 || breeding.value) return;
+      resources.greenWater -= 5;
+      resources.waterGrass -= 3;
+      breeding.value = true;
+      setTimeout(() => {
+        resources.daphnia += 5;
+        breeding.value = false;
+        spawnFloat('+5 🦐', evt, '#0891b2');
+      }, 1200);
+    }
+
+    function feedFish(key, evt) {
+      const f = fish[key];
+      const isHigh = key === 'shan' || key === 'turtle';
+      if (f.level >= MAX_LEVEL) return;
+      if (isHigh) {
+        if (resources.daphnia < FISH_FEED_COST_HIGH || resources.aquaResource < 3) { showToast('水蚤或水產資源不足'); return; }
+        resources.daphnia -= FISH_FEED_COST_HIGH;
+        resources.aquaResource -= 3;
+      } else {
+        if (resources.daphnia < FISH_FEED_COST) { showToast('水蚤不足'); return; }
+        resources.daphnia -= FISH_FEED_COST;
+      }
+      const gain = f.level * (isHigh ? 3 : 2);
+      resources.aquaResource += gain;
+      f.feedProgress += 1;
+      spawnFloat('+' + gain + ' 🐟', evt, '#0284c7');
+      if (f.feedProgress >= LEVEL_THRESHOLD && f.level < MAX_LEVEL) {
+        f.feedProgress = 0;
+        f.level += 1;
+        showToast('🎉 升級成功！Lv.' + f.level);
+      }
+    }
+
+    function unlockHighTier(evt) {
+      if (state.highTierUnlocked) return;
+      if (fish.zhuwenjin.level < 3 || fish.douyu.level < 3) { showToast('朱文錦與鬥魚需先達到 Lv.3'); return; }
+      if (resources.aquaResource < 30) { showToast('水產資源不足（需 30）'); return; }
+      resources.aquaResource -= 30;
+      state.highTierUnlocked = true;
+      showToast('🎉 高級水產池開放！鱔魚與鱉池已解鎖');
+    }
+
+    // ---------- 每日任務 ----------
+    const checkedInToday = computed(() => state.dailyTasks.lastCheckIn === today());
+    const adRemaining = computed(() => (state.dailyTasks.adDate === today() ? Math.max(0, 3 - state.dailyTasks.adCount) : 3));
+    function checkIn(evt) {
+      if (checkedInToday.value) return;
+      state.dailyTasks.lastCheckIn = today();
+      resources.duckFood += 10;
+      spawnFloat('+10 🌽', evt);
+      showToast('簽到成功，獲得 10 顆鴨飼料！');
+    }
+    const adLoading = ref(false);
+    function watchAd(evt) {
+      if (adRemaining.value <= 0 || adLoading.value) return;
+      adLoading.value = true;
+      setTimeout(() => {
+        if (state.dailyTasks.adDate !== today()) { state.dailyTasks.adDate = today(); state.dailyTasks.adCount = 0; }
+        state.dailyTasks.adCount += 1;
+        resources.greenWater += 15;
+        adLoading.value = false;
+        spawnFloat('+15 💧', evt, '#0284c7');
+        showToast('觀看完成，獲得 15 綠水營養液！');
+      }, 1200);
+    }
+
+    // ---------- 休閒釣魚池 ----------
+    const baitOptions = [
+      { id: 'daphnia', name: '水蚤餌', icon: 'daphnia', cost: { daphnia: 3 } },
+      { id: 'zhuwenjin', name: '朱文錦精華餌', icon: 'zhuwenjin', cost: { aquaResource: 5 } },
+    ];
+    const selectedBait = ref('daphnia');
+    const fishing = reactive({ state: 'idle', resultText: '', timer: null });
+
+    const fishingStatusText = computed(() => {
+      if (fishing.state === 'waiting') return '魚兒觀察中...🎣';
+      if (fishing.state === 'biting') return '⚡ 咬餌了！快點拉竿！';
+      if (fishing.state === 'result') return fishing.resultText;
+      return '選擇魚餌，準備拋竿！';
+    });
+    const canCast = computed(() => {
+      const b = baitOptions.find(x => x.id === selectedBait.value);
+      return Object.keys(b.cost).every(k => resources[k] >= b.cost[k]);
+    });
+
+    function castRod(evt) {
+      if (fishing.state !== 'idle') return;
+      const bait = baitOptions.find(b => b.id === selectedBait.value);
+      if (!Object.keys(bait.cost).every(k => resources[k] >= bait.cost[k])) { showToast('魚餌不足'); return; }
+      Object.keys(bait.cost).forEach(k => { resources[k] -= bait.cost[k]; });
+      fishing.state = 'waiting';
+      fishing.resultText = '';
+      const waitMs = 1200 + Math.random() * 1800;
+      fishing.timer = setTimeout(() => {
+        fishing.state = 'biting';
+        fishing.timer = setTimeout(() => {
+          if (fishing.state === 'biting') {
+            fishing.state = 'idle';
+            showToast('魚兒跑掉了，再試一次！');
+          }
+        }, 1400);
+      }, waitMs);
+    }
+
+    function rollCatch(baitId) {
+      if (debugForcedCatch.value) {
+        const forced = debugForcedCatch.value;
+        debugForcedCatch.value = '';
+        return forced;
+      }
+      const table = baitId === 'zhuwenjin'
+        ? [['empty', .15], ['shrimp', .35], ['bass', .30], ['goldBream', .15], ['chest', .05]]
+        : [['empty', .30], ['shrimp', .40], ['bass', .20], ['goldBream', .07], ['chest', .03]];
+      let r = Math.random();
+      for (const [key, p] of table) {
+        if (r < p) return key;
+        r -= p;
+      }
+      return 'empty';
+    }
+
+    function reelIn(evt) {
+      if (fishing.state === 'waiting') { showToast('還沒上鉤，再等等！'); return; }
+      if (fishing.state !== 'biting') return;
+      clearTimeout(fishing.timer);
+      const result = rollCatch(selectedBait.value);
+      fishing.state = 'result';
+      if (result === 'empty') {
+        fishing.resultText = '這次槓龜了，什麼都沒釣到...';
+        showToast('這次槓龜了');
+      } else if (result === 'shrimp') {
+        resources.shrimp += 1;
+        fishing.resultText = '🦞 釣到 泰國蝦！';
+        spawnFloat('+1 🦞', evt, '#ea580c');
+      } else if (result === 'bass') {
+        resources.bass += 1;
+        fishing.resultText = '🐠 釣到 野生鱸魚！';
+        spawnFloat('+1 🐠', evt, '#0891b2');
+      } else if (result === 'goldBream') {
+        resources.goldBream += 1;
+        fishing.resultText = '✨ 釣到 夢幻金鯛！';
+        spawnFloat('+1 ✨', evt, '#7c3aed');
+      } else if (result === 'chest') {
+        cart.freeItems.treasureBox = (cart.freeItems.treasureBox || 0) + 1;
+        fishing.resultText = '🎁 挖到黃金寶箱！$0 兌換券已直接加入購物車！';
+        spawnFloat('🎁 寶箱！', evt, '#d97706');
+        showToast('🎉 挖到黃金寶箱！已加入購物車');
+      }
+      setTimeout(() => { if (fishing.state === 'result') fishing.state = 'idle'; }, 1800);
+    }
+
+    // ---------- 加工廠 ----------
+    function canProcess(r) {
+      if (r.lockKey && !state[r.lockKey]) return false;
+      return Object.keys(r.cost).every(k => resources[k] >= r.cost[k]);
+    }
+    function processRecipe(r, evt) {
+      if (!canProcess(r)) { showToast('原料不足或尚未解鎖'); return; }
+      Object.keys(r.cost).forEach(k => { resources[k] -= r.cost[k]; });
+      voucherMap[r.id].ownedQty += 1;
+      spawnFloat('✨加工成功', evt, '#d97706');
+      showToast('🎉 「' + r.name + '」加工完成，已放入背包！');
+    }
+
+    // ---------- 背包 / 購物車 ----------
+    function addVoucherToCart(id, evt) {
+      const v = voucherMap[id];
+      if (v.ownedQty <= 0) return;
+      v.ownedQty -= 1;
+      cart.freeItems[id] = (cart.freeItems[id] || 0) + 1;
+      spawnFloat('已加入購物車', evt);
+    }
+    function removeFromCart(id) {
+      if (!cart.freeItems[id]) return;
+      cart.freeItems[id] -= 1;
+      voucherMap[id].ownedQty += 1;
+      if (cart.freeItems[id] <= 0) delete cart.freeItems[id];
+    }
+    const cartFreeList = computed(() =>
+      Object.keys(cart.freeItems).filter(id => cart.freeItems[id] > 0).map(id => ({ id, qty: cart.freeItems[id], ...voucherMeta[id] }))
+    );
+    const cartFreeCount = computed(() => Object.values(cart.freeItems).reduce((a, b) => a + b, 0));
+    const cartBadge = computed(() => cartFreeCount.value + Object.values(cart.addons).reduce((a, b) => a + b, 0));
+
+    function changeAddon(id, delta) {
+      const next = (cart.addons[id] || 0) + delta;
+      cart.addons[id] = Math.max(0, next);
+    }
+    const addonSubtotal = computed(() =>
+      addonProducts.reduce((sum, p) => sum + p.price * (cart.addons[p.id] || 0), 0)
+    );
+    const shippingFee = computed(() => (addonSubtotal.value >= 499 ? 0 : 60));
+    const totalAmount = computed(() => addonSubtotal.value + shippingFee.value);
+
+    const showOrderModal = ref(false);
+    const lastOrderId = ref('');
+    function submitOrder() {
+      if (liffReady.value && !state.lineUserId) { showToast('請先登入 LINE 才能兌換 $0 商品'); return; }
+      if (cartFreeCount.value <= 0) { showToast('請至少選擇一項 $0 兌換商品'); return; }
+      const r = cart.recipient;
+      if (!r.name || !r.phone) { showToast('請填寫收件人姓名與電話'); return; }
+      if (cart.shipping === 'store' && (!r.storeBrand || !r.storeName)) { showToast('請選擇超商門市'); return; }
+      if (cart.shipping === 'home' && !r.address) { showToast('請填寫宅配地址'); return; }
+
+      lastOrderId.value = 'DP' + Date.now().toString().slice(-8);
+      showOrderModal.value = true;
+
+      // 記錄訂單（含 LINE userId），供之後接後端／人工審核刷單用
+      state.orderHistory.push({
+        orderId: lastOrderId.value,
+        ts: Date.now(),
+        lineUserId: state.lineUserId || null,
+        freeItems: { ...cart.freeItems },
+        addons: { ...cart.addons },
+        total: totalAmount.value,
+      });
+
+      // 清空購物車（免費商品已核銷、加購商品歸零）
+      Object.keys(cart.freeItems).forEach(id => delete cart.freeItems[id]);
+      addonProducts.forEach(p => (cart.addons[p.id] = 0));
+    }
+
+    // ---------- 測試後台 ----------
+    const showDebug = ref(false);
+    const debugResourceKeys = ['greenWater', 'waterGrass', 'daphnia', 'duckFood', 'duckEgg', 'aquaResource', 'shrimp', 'bass', 'goldBream'];
+    function resourceIcon(key) {
+      return { greenWater: '💧', waterGrass: '🌾', daphnia: '🦐', duckFood: '🌽', duckEgg: '🥚', aquaResource: '🐟', shrimp: '🦞', bass: '🐠', goldBream: '✨' }[key] || '🔹';
+    }
+    function debugAddAll(amount) {
+      debugResourceKeys.forEach(k => { resources[k] += amount; });
+      showToast('已為全部資源 +' + amount);
+    }
+    function debugMaxFish() {
+      Object.values(fish).forEach(f => { f.level = MAX_LEVEL; f.feedProgress = 0; });
+      showToast('所有魚類已設為滿級');
+    }
+    function debugResetDaily() {
+      state.dailyTasks.lastCheckIn = null;
+      state.dailyTasks.adDate = null;
+      state.dailyTasks.adCount = 0;
+      showToast('每日任務已重置，可重新測試簽到與廣告');
+    }
+    const debugForcedCatch = ref('');
+    const debugCatchOptions = [
+      { id: 'shrimp', emoji: '🦞', label: '泰國蝦' },
+      { id: 'bass', emoji: '🐠', label: '鱸魚' },
+      { id: 'goldBream', emoji: '✨', label: '金鯛' },
+      { id: 'chest', emoji: '🎁', label: '寶箱' },
+      { id: 'empty', emoji: '🚫', label: '槓龜' },
+    ];
+
+    const debugExportText = ref('');
+    function debugExportSave() {
+      debugExportText.value = JSON.stringify(state, null, 2);
+      showToast('已產生存檔 JSON，請在下方文字框全選複製');
+    }
+    function debugImportSave() {
+      try {
+        const parsed = JSON.parse(debugExportText.value);
+        Object.assign(resources, parsed.resources || {});
+        Object.assign(duck, parsed.duck || {});
+        Object.assign(fish, parsed.fish || {});
+        if (typeof parsed.highTierUnlocked === 'boolean') state.highTierUnlocked = parsed.highTierUnlocked;
+        Object.assign(state.dailyTasks, parsed.dailyTasks || {});
+        Object.assign(state.vouchers, parsed.vouchers || {});
+        Object.assign(cart, parsed.cart || {});
+        if (parsed.lineUserId !== undefined) state.lineUserId = parsed.lineUserId;
+        if (Array.isArray(parsed.orderHistory)) state.orderHistory = parsed.orderHistory;
+        showToast('🎉 存檔已匯入！');
+      } catch (e) {
+        showToast('JSON 格式錯誤，匯入失敗');
+        console.warn('存檔匯入失敗', e);
+      }
+    }
+
+    function confirmReset() {
+      if (!confirm('確定要重置存檔嗎？所有進度將會清空。')) return;
+      localStorage.removeItem(SAVE_KEY);
+      location.reload();
+    }
+
+    // ---------- 被動生成（放置採集） ----------
+    onMounted(() => {
+      setInterval(() => { resources.greenWater += 1; }, 8000);
+
+      // ---------- LINE LIFF 初始化＋強制登入（防刷單第一道防線：綁定 LINE 帳號） ----------
+      try {
+        if (typeof liff !== 'undefined') {
+          const LIFF_ID = 'YOUR_LIFF_ID'; // TODO: 請替換為您在 LINE Developers 申請的 LIFF ID
+          liff.init({ liffId: LIFF_ID }).then(() => {
+            liffReady.value = true; // 只有真的部署好、LIFF ID 有效時才會進到這裡
+            if (!liff.isLoggedIn()) {
+              liff.login(); // 尚未登入 LINE，導去登入頁，登入後會自動帶回本頁
+              return;
+            }
+            return liff.getProfile();
+          }).then(profile => {
+            if (profile) {
+              lineUser.value = profile;
+              state.lineUserId = profile.userId; // 用 LINE userId 當作玩家的唯一身分依據
+            }
+          }).catch(err => {
+            console.warn('LIFF 初始化失敗（在一般瀏覽器預覽此頁面屬正常現象，本機測試不受影響）：', err);
+          });
+        }
+      } catch (e) {
+        console.warn('LIFF SDK 尚未載入或執行環境不支援', e);
+      }
+    });
+
+    return {
+      page, farmTab, lineUser, liffReady, state, resources, duck, fish, cart,
+      recipes, vouchers, voucherMap, baseFishList, highFishList, addonProducts, navItems,
+      floatingTexts, toasts,
+      LEVEL_THRESHOLD, MAX_LEVEL, FISH_FEED_COST, FISH_FEED_COST_HIGH,
+      tabBtnClass, shipBtnClass,
+      duckFeedingFx, feedDuck, collectEgg,
+      grassCooldown, gatherGrass, breeding, breedDaphnia, feedFish, unlockHighTier,
+      checkedInToday, adRemaining, adLoading, checkIn, watchAd,
+      baitOptions, selectedBait, fishing, fishingStatusText, canCast, castRod, reelIn,
+      iconId, canProcess, processRecipe,
+      addVoucherToCart, removeFromCart, cartFreeList, cartFreeCount, cartBadge,
+      changeAddon, addonSubtotal, shippingFee, totalAmount,
+      showOrderModal, lastOrderId, submitOrder, confirmReset,
+      showDebug, debugResourceKeys, resourceIcon, debugAddAll, debugMaxFish, debugResetDaily,
+      debugForcedCatch, debugCatchOptions, debugExportText, debugExportSave, debugImportSave,
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
