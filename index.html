@@ -11,6 +11,12 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <!-- LINE LIFF SDK -->
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<!-- Google AdSense / H5 Games Ads：驗證網站所有權用，同時也是真廣告的 SDK -->
+<script>
+  window.adsbygoogle = window.adsbygoogle || [];
+  window.adBreak = window.adBreak || function (o) { window.adsbygoogle.push(o); };
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8864294457540119" crossorigin="anonymous"></script>
 <!-- 中文字型 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -809,6 +815,12 @@
 <script>
 const { createApp, reactive, computed, ref, onMounted, watch } = Vue;
 
+// ---------- Google H5 Games Ads（Ad Placement API）----------
+// SDK 載入標籤已經寫在 <head> 裡（靜態寫死，用來給 Google 驗證網站所有權，這部分現在就生效了）。
+// 但 AdSense 帳號審核通過前，adBreak() 很可能抓不到真廣告、玩家會領不到獎勵，所以遊戲內獎勵邏輯先繼續用模擬廣告。
+// TODO: 等 AdSense 後台顯示帳號「已核准／已開始放送廣告」後，把這裡改成 true，重新部署即可切換成真廣告。
+const useRealAds = false;
+
 createApp({
   setup() {
     const SAVE_KEY = 'duckFarmSaveV1';
@@ -1091,14 +1103,30 @@ createApp({
     function watchAd(evt) {
       if (adRemaining.value <= 0 || adLoading.value) return;
       adLoading.value = true;
-      setTimeout(() => {
+
+      function grantAdReward() {
         if (state.dailyTasks.adDate !== today()) { state.dailyTasks.adDate = today(); state.dailyTasks.adCount = 0; }
         state.dailyTasks.adCount += 1;
         resources.greenWater += 15;
         adLoading.value = false;
         spawnFloat('+15 💧', evt, '#0284c7');
         showToast('觀看完成，獲得 15 綠水營養液！');
-      }, 1200);
+      }
+
+      if (useRealAds && typeof adBreak === 'function') {
+        // 真廣告：一定要在 adViewed（玩家完整看完）才發獎勵，adDismissed（中途關閉）不給獎勵
+        adBreak({
+          type: 'reward',
+          name: 'green-water-bonus',
+          beforeReward: (showAdFn) => { showAdFn(); },
+          adViewed: () => { grantAdReward(); },
+          adDismissed: () => { adLoading.value = false; showToast('未看完廣告，無法領取獎勵'); },
+          adBreakDone: () => { adLoading.value = false; },
+        });
+      } else {
+        // 模擬廣告（尚未申請/核准真廣告前的展示模式，體驗與真廣告流程一致）
+        setTimeout(grantAdReward, 1200);
+      }
     }
 
     // ---------- 休閒釣魚池 ----------
