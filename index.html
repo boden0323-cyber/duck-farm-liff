@@ -92,19 +92,85 @@
     color: #047857;
   }
 
+  /* ---- Q彈候感按鈕：厚實立體邊、按下去會回彈 ---- */
   .btn-primary {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white; font-weight: 700;
-    transition: transform .1s ease, filter .15s ease;
+    background: linear-gradient(160deg, #34d399, #059669);
+    color: white; font-weight: 900;
+    border-bottom: 4px solid #047857;
+    box-shadow: 0 2px 0 rgba(0,0,0,.05);
+    transition: transform .08s ease, border-bottom-width .08s ease, filter .15s ease;
+    position: relative;
   }
-  .btn-primary:active { transform: scale(.96); }
-  .btn-primary:disabled { filter: grayscale(.6) brightness(.9); opacity: .55; }
+  .btn-primary:active { transform: translateY(3px); border-bottom-width: 1px; }
+  .btn-primary:disabled { filter: grayscale(.6) brightness(.9); opacity: .55; border-bottom-color: #6b7280; }
 
-  .card { background: white; border-radius: 1rem; box-shadow: 0 2px 10px rgba(16,185,129,.08); }
-.gicon { display: inline-block; vertical-align: -0.15em; flex-shrink: 0; }
+  .card {
+    background: linear-gradient(180deg, #ffffff, #fdfefe);
+    border-radius: 1.25rem;
+    box-shadow: 0 3px 0 rgba(16,185,129,.12), 0 6px 16px rgba(16,185,129,.10);
+    border: 1px solid rgba(16,185,129,.08);
+  }
+  .gicon { display: inline-block; vertical-align: -0.15em; flex-shrink: 0; }
+
+  /* ---- 雲端仙境飄浮背景 ---- */
+  .sky-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    background: linear-gradient(180deg, #bfe7ff 0%, #dff3ff 35%, #fef6e0 100%); }
+  .sky-sun { position: absolute; top: -60px; right: -40px; width: 220px; height: 220px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,244,190,.9), rgba(255,244,190,0) 70%); }
+  .cloud { position: absolute; opacity: .85; filter: drop-shadow(0 4px 0 rgba(255,255,255,.4)); }
+  @keyframes driftRight { 0% { transform: translateX(-120px); } 100% { transform: translateX(110vw); } }
+  @keyframes driftLeft { 0% { transform: translateX(110vw); } 100% { transform: translateX(-160px); } }
+  .cloud-1 { top: 6%;  animation: driftRight 46s linear infinite; }
+  .cloud-2 { top: 18%; animation: driftLeft 60s linear infinite; animation-delay: -10s; }
+  .cloud-3 { top: 12%; animation: driftRight 70s linear infinite; animation-delay: -30s; }
+  .island { position: absolute; bottom: 8%; opacity: .5; }
+  .island-1 { left: -6%; animation: driftRight 90s linear infinite; }
+  .island-2 { right: -8%; animation: driftLeft 110s linear infinite; animation-delay: -40s; }
+
+  /* ---- 慶祝彩帶特效 ---- */
+  @keyframes confettiFall {
+    0% { transform: translate(0,0) rotate(0deg); opacity: 1; }
+    100% { transform: var(--tx) var(--ty) rotate(var(--rot)); opacity: 0; }
+  }
+  .confetti-piece { position: fixed; z-index: 65; border-radius: 2px; animation: confettiFall .9s cubic-bezier(.2,.7,.4,1) forwards; pointer-events: none; }
+
+  /* ---- 對話泡泡風 Toast ---- */
+  @keyframes bubbleIn {
+    0% { opacity: 0; transform: translateY(-10px) scale(.85); }
+    12%, 88% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-8px) scale(.95); }
+  }
+  .toast-bubble {
+    animation: bubbleIn 2s ease-in-out forwards;
+    background: #ffffff; color: #065f46; font-weight: 800;
+    border: 2.5px solid #10b981; border-radius: 999px;
+    padding: 8px 18px; box-shadow: 0 4px 0 rgba(5,150,105,.18), 0 6px 14px rgba(0,0,0,.08);
+    position: relative;
+  }
+  .toast-bubble::after {
+    content: ''; position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
+    border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 8px solid #10b981;
+  }
+  .toast-bubble::before {
+    content: ''; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%);
+    border-left: 5.5px solid transparent; border-right: 5.5px solid transparent; border-top: 6px solid #ffffff; z-index: 1;
+  }
+
+  /* ---- 圖鑑卡片：未收集顯示剪影 ---- */
+  .dex-locked { filter: brightness(0) opacity(.28); }
 </style>
 </head>
 <body class="bg-emerald-50">
+
+<!-- 雲端仙境飄浮背景 -->
+<div class="sky-bg">
+  <div class="sky-sun"></div>
+  <svg class="island island-1" width="180" height="90" viewBox="0 0 180 90"><path d="M20 55 Q10 75 40 78 L150 78 Q175 75 160 55 Q140 40 100 42 Q90 30 70 35 Q55 20 40 32 Q20 35 20 55Z" fill="#93c5fd" opacity=".55"/><ellipse cx="90" cy="80" rx="70" ry="8" fill="#bfdbfe" opacity=".6"/></svg>
+  <svg class="island island-2" width="150" height="80" viewBox="0 0 150 80"><path d="M15 48 Q6 66 32 68 L124 68 Q146 66 132 48 Q114 36 82 38 Q70 26 52 32 Q38 18 26 30 Q15 32 15 48Z" fill="#a7f3d0" opacity=".5"/><ellipse cx="75" cy="70" rx="58" ry="7" fill="#d1fae5" opacity=".6"/></svg>
+  <svg class="cloud cloud-1" width="120" height="50" viewBox="0 0 120 50"><ellipse cx="30" cy="32" rx="26" ry="16" fill="#fff"/><ellipse cx="58" cy="22" rx="30" ry="20" fill="#fff"/><ellipse cx="88" cy="30" rx="24" ry="15" fill="#fff"/></svg>
+  <svg class="cloud cloud-2" width="90" height="40" viewBox="0 0 90 40"><ellipse cx="24" cy="26" rx="20" ry="13" fill="#fff"/><ellipse cx="46" cy="18" rx="22" ry="16" fill="#fff"/><ellipse cx="68" cy="24" rx="18" ry="12" fill="#fff"/></svg>
+  <svg class="cloud cloud-3" width="100" height="45" viewBox="0 0 100 45"><ellipse cx="26" cy="28" rx="22" ry="14" fill="#fff"/><ellipse cx="52" cy="19" rx="24" ry="17" fill="#fff"/><ellipse cx="76" cy="26" rx="20" ry="13" fill="#fff"/></svg>
+</div>
 
 <!-- 原創插畫圖示庫（隱藏的 SVG sprite，供 <use> 引用） -->
 <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
@@ -113,6 +179,8 @@
 <symbol id="icon-duck" viewBox="0 0 100 100">
   <ellipse cx="52" cy="66" rx="34" ry="24" fill="#fef3c7"/>
   <ellipse cx="40" cy="60" rx="14" ry="10" fill="#fde68a"/>
+  <path d="M52 52 Q60 62 50 70 Q42 63 52 52Z" fill="#ef4444"/>
+  <path d="M52 52 Q46 58 50 66" fill="none" stroke="#dc2626" stroke-width="2"/>
   <circle cx="66" cy="42" r="22" fill="#fffbeb"/>
   <path d="M84 42 Q98 40 98 48 Q98 54 84 50 Z" fill="#f59e0b"/>
   <circle cx="74" cy="36" r="3.2" fill="#292524"/>
@@ -291,7 +359,7 @@
 </defs>
 </svg>
 
-<div id="app" class="min-h-screen bg-gradient-to-b from-sky-100 via-emerald-50 to-amber-50 pb-24 relative overflow-x-hidden">
+<div id="app" class="min-h-screen pb-24 relative overflow-x-hidden" style="background:transparent; z-index:1;">
 
   <!-- 浮動文字特效層 -->
   <div class="pointer-events-none fixed inset-0 z-[60]">
@@ -302,10 +370,15 @@
 
   <!-- Toast 提示 -->
   <div class="fixed top-16 left-0 right-0 z-[70] flex flex-col items-center gap-2 px-4 pointer-events-none">
-    <div v-for="t in toasts" :key="t.id"
-         class="animate-fade bg-gray-900/85 text-white text-xs font-medium px-4 py-2 rounded-full shadow-lg">
+    <div v-for="t in toasts" :key="t.id" class="toast-bubble text-xs">
       {{ t.msg }}
     </div>
+  </div>
+
+  <!-- 慶祝彩帶特效層 -->
+  <div class="pointer-events-none fixed inset-0 z-[62]">
+    <span v-for="c in confetti" :key="c.id" class="confetti-piece"
+          :style="{ left: c.x+'px', top: c.y+'px', width: c.size+'px', height: c.size+'px', background: c.color, '--tx': c.tx, '--ty': c.ty, '--rot': c.rot }"></span>
   </div>
 
   <!-- Header -->
@@ -464,6 +537,7 @@
           <span class="flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-bass"/></svg> 野生鱸魚 {{ resources.bass }}</span>
           <span class="flex items-center gap-1"><svg class="gicon w-4 h-4"><use href="#icon-goldbream"/></svg> 夢幻金鯛 {{ resources.goldBream }}</span>
         </div>
+        <button class="btn-primary w-full rounded-xl py-2 text-xs mt-2" style="background:linear-gradient(135deg,#a855f7,#7c3aed)" @click="showDex=true">📖 查看釣魚圖鑑</button>
         <p class="text-[10px] text-gray-400 mt-2 text-center">拋竿後浮標會開始晃動，等浮標「❗」用力下沉時盡快拉竿！釣到的魚可以拿去美食工坊加工，偶爾還會挖到黃金寶箱喔！</p>
       </div>
 
@@ -633,6 +707,29 @@
     </div>
   </div>
 
+  <!-- 釣魚圖鑑 Modal -->
+  <div v-if="showDex" class="fixed inset-0 z-[85] bg-black/60 flex items-center justify-center px-4" @click.self="showDex=false">
+    <div class="card modal-pop w-full max-w-sm p-4" style="max-height:85vh; overflow-y:auto;">
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-black text-gray-700">📖 釣魚圖鑑</div>
+        <button class="text-gray-400 text-xl leading-none" @click="showDex=false">✕</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div v-for="d in dexList" :key="d.key" class="rounded-xl border border-gray-100 p-3 text-center" style="background:linear-gradient(180deg,#fafafa,#fff)">
+          <svg class="gicon w-16 h-16 mx-auto mb-1" :class="{ 'dex-locked': state.catchStats[d.key]===0 }"><use :href="'#icon-'+d.icon"/></svg>
+          <div class="text-xs font-bold" :class="state.catchStats[d.key]===0 ? 'text-gray-300' : 'text-gray-800'">
+            {{ state.catchStats[d.key]===0 ? '？？？' : d.name }}
+          </div>
+          <div class="text-[10px] text-gray-400 mt-0.5">
+            {{ state.catchStats[d.key]===0 ? '尚未捕獲' : ('累積捕獲 ' + state.catchStats[d.key] + ' 次') }}
+          </div>
+          <div v-if="state.catchStats[d.key]>0" class="text-[9px] text-emerald-600 mt-1 leading-tight">可兌換：{{ d.usedIn }}</div>
+        </div>
+      </div>
+      <p class="text-[10px] text-gray-400 mt-3 text-center">收集齊全部圖鑑，拿去美食工坊加工就能真的換到實體商品兌換券喔！</p>
+    </div>
+  </div>
+
   <!-- 測試後台 Modal -->
   <div v-if="showDebug" class="fixed inset-0 z-[90] bg-black/60 flex items-end justify-center">
     <div class="card modal-pop w-full max-w-md rounded-b-none p-4" style="max-height:88vh; overflow-y:auto;">
@@ -753,6 +850,7 @@ createApp({
       },
       lineUserId: null,
       orderHistory: [],
+      catchStats: { shrimp: 0, bass: 0, goldBream: 0, treasureBox: 0 },
     });
 
     const loaded = (() => {
@@ -771,6 +869,7 @@ createApp({
           cart: Object.assign(base.cart, parsed.cart),
           lineUserId: parsed.lineUserId || null,
           orderHistory: Array.isArray(parsed.orderHistory) ? parsed.orderHistory : [],
+          catchStats: Object.assign(base.catchStats, parsed.catchStats),
         };
       } catch (e) {
         console.warn('存檔讀取失敗，使用預設值', e);
@@ -848,6 +947,34 @@ createApp({
       }, 1000);
     }
 
+    // ---------- 慶祝彩帶特效 ----------
+    const confetti = reactive([]);
+    let confettiId = 0;
+    const CONFETTI_COLORS = ['#f59e0b', '#10b981', '#0ea5e9', '#f43f5e', '#a855f7', '#facc15'];
+    function burstConfetti(evt, count) {
+      const x = evt && evt.clientX ? evt.clientX : window.innerWidth / 2;
+      const y = evt && evt.clientY ? evt.clientY : window.innerHeight / 2;
+      const n = count || 16;
+      for (let i = 0; i < n; i++) {
+        const id = ++confettiId;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 60 + Math.random() * 90;
+        const piece = {
+          id, x, y,
+          size: 5 + Math.random() * 5,
+          color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+          tx: Math.cos(angle) * dist + 'px',
+          ty: (Math.sin(angle) * dist + 80) + 'px',
+          rot: Math.floor(Math.random() * 480 - 240) + 'deg',
+        };
+        confetti.push(piece);
+        setTimeout(() => {
+          const idx = confetti.findIndex(c => c.id === id);
+          if (idx !== -1) confetti.splice(idx, 1);
+        }, 950);
+      }
+    }
+
     const toasts = reactive([]);
     let toastId = 0;
     function showToast(msg) {
@@ -891,6 +1018,7 @@ createApp({
       duck.satiety = 0;
       spawnFloat('+' + gain + ' 🥚', evt, '#d97706');
       showToast('採集到 ' + gain + ' 顆雲端鴨蛋！');
+      burstConfetti(evt, 10);
     }
 
     // ---------- 水族生態池 ----------
@@ -1039,24 +1167,39 @@ createApp({
         showToast('這次槓龜了');
       } else if (result === 'shrimp') {
         resources.shrimp += 1;
+        state.catchStats.shrimp += 1;
         fishing.resultText = '🦞 釣到 泰國蝦！';
         spawnFloat('+1 🦞', evt, '#ea580c');
       } else if (result === 'bass') {
         resources.bass += 1;
+        state.catchStats.bass += 1;
         fishing.resultText = '🐠 釣到 野生鱸魚！';
         spawnFloat('+1 🐠', evt, '#0891b2');
       } else if (result === 'goldBream') {
         resources.goldBream += 1;
+        state.catchStats.goldBream += 1;
         fishing.resultText = '✨ 釣到 夢幻金鯛！';
         spawnFloat('+1 ✨', evt, '#7c3aed');
+        burstConfetti(evt, 20);
       } else if (result === 'chest') {
         cart.freeItems.treasureBox = (cart.freeItems.treasureBox || 0) + 1;
+        state.catchStats.treasureBox += 1;
         fishing.resultText = '🎁 挖到黃金寶箱！$0 兌換券已直接加入購物車！';
         spawnFloat('🎁 寶箱！', evt, '#d97706');
         showToast('🎉 挖到黃金寶箱！已加入購物車');
+        burstConfetti(evt, 32);
       }
       setTimeout(() => { if (fishing.state === 'result') fishing.state = 'idle'; }, 1800);
     }
+
+    // ---------- 釣魚圖鑑 ----------
+    const showDex = ref(false);
+    const dexList = [
+      { key: 'shrimp', name: '泰國蝦', icon: 'shrimp', usedIn: '鮮魚火鍋湯底' },
+      { key: 'bass', name: '野生鱸魚', icon: 'bass', usedIn: '鮮魚火鍋湯底、養生海鮮湯包' },
+      { key: 'goldBream', name: '夢幻金鯛', icon: 'goldbream', usedIn: '養生海鮮湯包' },
+      { key: 'treasureBox', name: '黃金寶箱', icon: 'treasurebox', usedIn: '釣到即直接兌換 $0 商品' },
+    ];
 
     // ---------- 加工廠 ----------
     function canProcess(r) {
@@ -1069,6 +1212,7 @@ createApp({
       voucherMap[r.id].ownedQty += 1;
       spawnFloat('✨加工成功', evt, '#d97706');
       showToast('🎉 「' + r.name + '」加工完成，已放入背包！');
+      burstConfetti(evt, 14);
     }
 
     // ---------- 背包 / 購物車 ----------
@@ -1113,6 +1257,7 @@ createApp({
 
       lastOrderId.value = 'DP' + Date.now().toString().slice(-8);
       showOrderModal.value = true;
+      burstConfetti(null, 28);
 
       // 記錄訂單（含 LINE userId），供之後接後端／人工審核刷單用
       state.orderHistory.push({
@@ -1194,7 +1339,8 @@ createApp({
 
       // ---------- LINE LIFF 初始化＋強制登入（防刷單第一道防線：綁定 LINE 帳號） ----------
       try {
-        if (typeof liff !== 'undefined') {
+        const isLocalDev = ['localhost', '127.0.0.1'].includes(location.hostname);
+        if (typeof liff !== 'undefined' && !isLocalDev) {
           const LIFF_ID = '2011755408-iTLtPRy7';
           liff.init({ liffId: LIFF_ID }).then(() => {
             liffReady.value = true; // 只有真的部署好、LIFF ID 有效時才會進到這裡
@@ -1220,7 +1366,8 @@ createApp({
     return {
       page, farmTab, lineUser, liffReady, state, resources, duck, fish, cart,
       recipes, vouchers, voucherMap, baseFishList, highFishList, addonProducts, navItems,
-      floatingTexts, toasts,
+      floatingTexts, toasts, confetti,
+      showDex, dexList,
       LEVEL_THRESHOLD, MAX_LEVEL, FISH_FEED_COST, FISH_FEED_COST_HIGH,
       tabBtnClass, shipBtnClass,
       duckFeedingFx, feedDuck, collectEgg,
